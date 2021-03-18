@@ -1,3 +1,11 @@
+[agents]
 172.25.2.6
 172.25.2.8
 172.25.2.9
+172.25.2.10
+
+[agents:vars]
+ansible_ssh_user=root
+ansible_ssh_pass=password
+ansible_become_pass=password
+
