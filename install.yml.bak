@@ -1,0 +1,46 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Deploy SSH Key
+      tags: deploy_ssh_key
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+
+    - name: install package
+      tags: install_packages
+      dnf:
+        name:
+          - dbus
+          - dbus-daemon
+          - dbus-devel
+          - swtpm-tools
+          - swtpm
+          - keylime
+        state: latest
+        update_cache: yes
+
+    - name: copy swtpm starting script
+      tags: copy_file
+      copy:
+        src: /root/swtpm.sh
+        dest: /root/swtpm.sh
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: start service swtpm
+      tags: start_service
+      command: bash /root/swtpm.sh
+
+    - name: start service keylime
+      tags: start_service
+      service: 
+        name: keylime_agent
+        state: started
+        enabled: yes
+

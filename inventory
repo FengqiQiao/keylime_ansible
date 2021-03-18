@@ -1,11 +1,11 @@
 [agents]
-172.25.2.6
-172.25.2.8
-172.25.2.9
-172.25.2.10
+172.25.2.6 uuid=D432FBB3-D2F1-4A97-9EF7-75BD81C00000
+172.25.2.8 uuid=D432FBB3-D2F1-4A97-9EF7-75BD81C00001
+172.25.2.9 uuid=D432FBB3-D2F1-4A97-9EF7-75BD81C00002
+172.25.2.10 uuid=D432FBB3-D2F1-4A97-9EF7-75BD81C00003
 
 [agents:vars]
 ansible_ssh_user=root
-ansible_ssh_pass=password
-ansible_become_pass=password
+ansible_ssh_pass=59043189
+ansible_become_pass=59043189
 

@@ -1,15 +1,10 @@
----
+--- 
 
 - hosts: all
   become: yes
+  vars_files:
+    - ./vars/ips.yml
   tasks:
-
-    - name: Deploy SSH Key
-      tags: deploy_ssh_key
-      ansible.posix.authorized_key:
-        user: root
-        state: present
-        key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
 
     - name: install package
       tags: install_packages
@@ -27,20 +22,44 @@
     - name: copy swtpm starting script
       tags: copy_file
       copy:
-        src: /root/swtpm.sh
-        dest: /root/swtpm.sh
+        src: /root/{{ item }}
+        dest: /root/
         owner: root
         group: root
         mode: 0755
+      with_items:
+        - swtpm.sh
+        - keylime-agent.sh
+
+    - name: configure registrar ip
+      tags: configure_registrar
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: '^registrar_ip = *'
+        line: registrar_ip = {{ registrar_ip }}
+
+    - name: configure agent uuid
+      tags: configure_uuid
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: '^agent_uuid = *'
+        line: agent_uuid = {{ uuid }}
+
+    - name: configure tpm ek to false
+      tags: configure_tpm_ek
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: '^require_ek_cert = *'
+        line: require_ek_cert = False
 
     - name: start service swtpm
-      tags: start_service
-      command: bash /root/swtpm.sh
+      tags: start_service,start_swtpm
+      command: sh /root/swtpm.sh
 
     - name: start service keylime
-      tags: start_service
-      service: 
-        name: keylime_agent
-        state: started
-        enabled: yes
+      tags: start_service,start_keylime_agent
+      command: bash /root/keylime-agent.sh
 
