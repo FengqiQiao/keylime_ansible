@@ -57,9 +57,22 @@
 
     - name: start service swtpm
       tags: start_service,start_swtpm
-      command: sh /root/swtpm.sh
+      shell: 
+        cmd: bash /root/swtpm.sh
+      async: 10
+      poll: 0
 
-    - name: start service keylime
+    - name: start service keylime agent
       tags: start_service,start_keylime_agent
-      command: bash /root/keylime-agent.sh
+      shell:
+        cmd: bash /root/keylime-agent.sh
+      async: 10
+      poll: 0
+
+    - name: start service keylime ima emulator
+      tags: start_service,start_keylime_ima
+      command: keylime_ima_emulator
+      async: 10
+      poll: 0
+
 
