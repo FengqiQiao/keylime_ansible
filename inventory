@@ -6,6 +6,6 @@
 
 [agents:vars]
 ansible_ssh_user=root
-ansible_ssh_pass=59043189
-ansible_become_pass=59043189
+ansible_ssh_pass=password
+ansible_become_pass=password
 
