@@ -2,22 +2,21 @@
 - hosts: all
   become: yes
   tasks:
-  - name: install keylime and its dependencies on all VMs
-    tags: install_keylime
-    dnf:
-      name: '{{ item }}'
-      state: latest
-      update_cache: yes
-    loop:
-      - keylime
-      - wget
-      - gcc
-      - make
-      - openssl-devel
-      - vim
-      - iputils
-      - lsof
-
+    - name: install keylime and its dependencies on all VMs
+      tags: install_keylime
+      dnf:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
+      loop:
+        - keylime
+        - wget
+        - gcc
+        - make
+        - openssl-devel
+        - vim
+        - iputils
+        - lsof
 
 - hosts: agents 
   become: yes
