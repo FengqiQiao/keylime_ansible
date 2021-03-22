@@ -1,0 +1,159 @@
+--- 
+- hosts: all
+  become: yes
+  tasks:
+  - name: install keylime and its dependencies on all VMs
+    tags: install_keylime
+    dnf:
+      name: '{{ item }}'
+      state: latest
+      update_cache: yes
+    loop:
+      - keylime
+      - wget
+      - gcc
+      - make
+      - openssl-devel
+      - vim
+      - iputils
+      - lsof
+
+
+- hosts: agents 
+  become: yes
+  vars_files:
+    - ./vars/ips.yml
+  tasks:
+
+    - name: install package
+      tags: install_packages
+      dnf:
+        name:
+          - dbus
+          - dbus-daemon
+          - dbus-devel
+          - swtpm-tools
+          - swtpm
+        state: latest
+        update_cache: yes
+
+    - name: copy swtpm starting script
+      tags: copy_file
+      copy:
+        src: ./resources/{{ item }}
+        dest: /root/
+        owner: root
+        group: root
+        mode: 0755
+      with_items:
+        - swtpm.sh
+        - keylime-agent.sh
+
+    - name: configure registrar ip
+      tags: configure_registrar
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: '^registrar_ip = *'
+        line: registrar_ip = {{ registrar_ip }}
+
+    - name: configure agent uuid
+      tags: configure_uuid
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: '^agent_uuid = *'
+        line: agent_uuid = {{ uuid }}
+
+    - name: configure tpm ek to false
+      tags: configure_tpm_ek
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: '^require_ek_cert = *'
+        line: require_ek_cert = False
+
+    - name: start service swtpm
+      tags: start_service,start_swtpm
+      shell: 
+        cmd: bash /root/swtpm.sh
+      async: 3600
+      poll: 0
+
+    - name: start service keylime agent
+      tags: start_service,start_keylime_agent
+      shell:
+        cmd: bash /root/keylime-agent.sh
+      async: 3600
+      poll: 0
+
+    - name: start service keylime ima emulator
+      tags: start_service,start_keylime_ima
+      command: keylime_ima_emulator
+      async: 3600
+      poll: 0
+
+
+
+- hosts: webapp 
+  become: yes
+  vars_files:
+    - ./vars/ips.yml
+  tasks:
+
+    - name: copy static file to /usr/lib/python3.9/site-packages/keylime 
+      tags: copy_file,fix_webapp
+      copy:
+        src: ./resources/{{ item }}
+        dest: /usr/lib/python3.9/site-packages/keylime/
+        owner: root
+        group: root
+        mode: 0644
+      with_items:
+        - static.tar.gz
+
+    - name: unzip static.tar.gz
+      tags: unzip,fix_webapp
+      command: tar -xzvf /usr/lib/python3.9/site-packages/keylime/static.tar.gz -C /usr/lib/python3.9/site-packages/keylime/
+
+    - name: fix tenant_webapp.py
+      tags: fix_mycert,fix_tenant_webapp,fix_webapp
+      lineinfile:
+        path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
+        firstmatch: yes
+        regexp: 'my_tls_cert = *'
+        line: '    my_tls_cert = "%s" % (my_cert)'
+
+    - name: fix tenant_webapp.py
+      tags: fix_privkey,fix_tenant_webapp,fix_webapp
+      lineinfile:
+        path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
+        firstmatch: yes
+        regexp: 'my_tls_priv_key = *'
+        line: '    my_tls_priv_key = "%s" % (my_priv_key)'
+
+    - name: distable tls
+      tags: configure_tls,fix_webapp
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: 'enable_tls = *'
+        line: enable_tls = False
+
+    - name: set webapp verifier ip
+      tags: configure_webapp_verifier_IP,fix_webapp
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^cloudverifier_ip = .*'
+        replace: cloudverifier_ip = {{ verifier_ip }}
+
+    - name: set webapp registrar ip
+      tags: configure_webapp_registrar_IP,fix_webapp
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^registrar_ip = .*'
+        replace: registrar_ip = {{ registrar_ip }}
+
+    - name: start keylime webapp
+      tags: start_service,start_keylime_webapp
+      command: keylime_webapp
