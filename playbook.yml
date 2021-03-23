@@ -22,7 +22,7 @@
         - lsof
 
     - name: install package
-      tags: install_packages
+      tags: install_packages,start_agent
       dnf:
         name:
           - dbus
@@ -34,7 +34,7 @@
         update_cache: yes
 
     - name: copy swtpm starting script
-      tags: copy_file
+      tags: copy_file,start_agent
       copy:
         src: ./resources/{{ item }}
         dest: /root/
@@ -46,7 +46,15 @@
         - keylime-agent.sh
 
     - name: configure registrar ip
-      tags: configure_registrar
+      tags: configure_agent,start_agent
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: '^cloudagent_ip = *'
+        line: cloudagent_ip = 0.0.0.0
+
+    - name: configure registrar ip
+      tags: configure_registrar,start_agent
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -54,7 +62,7 @@
         line: registrar_ip = {{ registrar_ip }}
 
     - name: configure agent uuid
-      tags: configure_uuid
+      tags: configure_uuid,start_agent
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -62,7 +70,7 @@
         line: agent_uuid = {{ uuid }}
 
     - name: configure tpm ek to false
-      tags: configure_tpm_ek
+      tags: configure_tpm_ek,start_agent
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -70,21 +78,21 @@
         line: require_ek_cert = False
 
     - name: start service swtpm
-      tags: start_service,start_swtpm
+      tags: start_service,start_swtpm,start_agent
       shell: 
         cmd: bash /root/swtpm.sh
       async: 36000
       poll: 0
 
     - name: start service keylime agent
-      tags: start_service,start_keylime_agent
+      tags: start_service,start_keylime_agent,start_agent
       shell:
         cmd: bash /root/keylime-agent.sh
       async: 36000
       poll: 0
 
     - name: start service keylime ima emulator
-      tags: start_service,start_keylime_ima
+      tags: start_service,start_keylime_ima,start_agent
       command: keylime_ima_emulator
       async: 36000
       poll: 0
@@ -163,7 +171,7 @@
         replace: cloudverifier_ip = {{ verifier_ip }}
 
     - name: set webapp registrar ip,configure_webapp,start_webapp
-      tags: configure_webapp_registrar_IP
+      tags: configure_webapp_registrar_IP,start_webapp
       replace:
         path: /etc/keylime.conf
         regexp: '^registrar_ip = .*'
@@ -246,5 +254,98 @@
     - name: start verifier
       tags: start_verifier
       command: keylime_verifier
+      async: 36000
+      poll: 0
+
+
+- hosts: registrar
+  become: yes
+  vars_files:
+    - ./vars/ips.yml
+  tasks:
+
+    - name: install keylime and its dependencies
+      tags: install_keylime_on_registrar,install_keylime
+      dnf:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
+      loop:
+        - keylime
+        - wget
+        - gcc
+        - make
+        - openssl-devel
+        - vim
+        - iputils
+        - lsof
+
+    - name: distable tls
+      tags: configure_tls,start_registrar
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: 'enable_tls = *'
+        line: enable_tls = False
+
+    - name: set registrar's verifier ip
+      tags: start_registrar
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^cloudverifier_ip = .*'
+        replace: cloudverifier_ip = {{ verifier_ip }}
+
+    - name: set registrar's registrar ip
+      tags: start_registrar
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^registrar_ip = .*'
+        replace: registrar_ip = 0.0.0.0
+
+    - name: comment out 1st of  3 lines in registrar_client.py
+      tags: start_registrar
+      lineinfile:
+        path: /usr/lib/python3.9/site-packages/keylime/registrar_client.py
+        firstmatch: yes
+        regexp: '^\s*if not tls_enabled:'
+        line: '    # if not tls_enabled:'
+
+    - name: comment out 2nd of  3 lines in registrar_client.py
+      tags: start_registrar
+      lineinfile:
+        path: /usr/lib/python3.9/site-packages/keylime/registrar_client.py
+        firstmatch: yes
+        regexp: '^\s*raise Exception\('
+        line: '    #     raise Exception('
+
+    - name: comment out 3rd of  3 lines in registrar_client.py
+      tags: start_registrar,try
+      lineinfile:
+        path: /usr/lib/python3.9/site-packages/keylime/registrar_client.py
+        firstmatch: yes
+        regexp: '^\s*\"It is unsafe to use this interface to query AIKs without server-authenticated TLS.\"\)'
+        line: '    #         "It is unsafe to use this interface to query AIKs without server-authenticated TLS.")'
+
+    - name: before starting keylime verifier, start verifier & registrar first to generate log file
+      tags: start_registrar
+      command: keylime_verifier
+      async: 30000
+      poll: 0
+
+    - name: kill verifier
+      tags: start_registrar
+      shell: killall keylime_verifier --wait
+      async: 30000
+      poll: 0
+
+    - name: close service firewall
+      tags: close_firewall_registrar,close_firewall,start_registrar
+      service:
+        name: firewalld
+        state: stopped
+
+    - name: start registrar
+      tags: start_registrar
+      command: keylime_registrar
       async: 36000
       poll: 0
