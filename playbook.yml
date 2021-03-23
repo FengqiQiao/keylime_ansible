@@ -245,6 +245,13 @@
         regexp: '^registrar_ip = .*'
         replace: registrar_ip = {{ registrar_ip }}
 
+    - name: set webapp verifier ip
+      tags: start_verifier
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^cloudverifier_ip = .*'
+        replace: cloudverifier_ip = 0.0.0.0
+
     - name: close service firewall
       tags: close_firewall_verifier,close_firewall,start_verifier
       service:
