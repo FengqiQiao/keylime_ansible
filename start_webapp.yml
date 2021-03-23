@@ -1,0 +1,105 @@
+--- 
+- hosts: webapp 
+  become: yes
+  vars_files:
+    - ./vars/ips.yml
+  tasks:
+
+    - name: install keylime and its dependencies 
+      tags: install_keylime_on_webapp,install_keylime
+      dnf:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
+      loop:
+        - keylime
+        - wget
+        - gcc
+        - make
+        - openssl-devel
+        - vim
+        - iputils
+        - lsof
+
+    - name: copy static file to /usr/lib/python3.9/site-packages/keylime 
+      tags: copy_file,fix_webapp,start_webapp
+      copy:
+        src: ./resources/{{ item }}
+        dest: /usr/lib/python3.9/site-packages/keylime/
+        owner: root
+        group: root
+        mode: 0644
+      with_items:
+        - static.tar.gz
+
+    - name: unzip static.tar.gz
+      tags: unzip,fix_webapp,start_webapp
+      command: tar -xzvf /usr/lib/python3.9/site-packages/keylime/static.tar.gz -C /usr/lib/python3.9/site-packages/keylime/
+
+    - name: fix tenant_webapp.py
+      tags: fix_mycert,fix_tenant_webapp,fix_webapp,start_webapp
+      lineinfile:
+        path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
+        firstmatch: yes
+        regexp: 'my_tls_cert = *'
+        line: '    my_tls_cert = "%s" % (my_cert)'
+
+    - name: fix tenant_webapp.py
+      tags: fix_privkey,fix_tenant_webapp,fix_webapp,start_webapp
+      lineinfile:
+        path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
+        firstmatch: yes
+        regexp: 'my_tls_priv_key = *'
+        line: '    my_tls_priv_key = "%s" % (my_priv_key)'
+
+    - name: distable tls
+      tags: configure_tls,fix_webapp,start_webapp
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: 'enable_tls = *'
+        line: enable_tls = False
+
+    - name: set webapp verifier ip
+      tags: configure_webapp_verifier_IP,configure_webapp,start_webapp
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^cloudverifier_ip = .*'
+        replace: cloudverifier_ip = {{ verifier_ip }}
+
+    - name: set webapp registrar ip,configure_webapp,start_webapp
+      tags: configure_webapp_registrar_IP,start_webapp
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^registrar_ip = .*'
+        replace: registrar_ip = {{ registrar_ip }}
+
+    - name: before start keylime webapp, start verifier & registrar first to generate log file
+      tags: create_log,start_keylime_webapp,start_webapp
+      command: keylime_verifier
+      async: 30000
+      poll: 0
+
+    - name: before start keylime webapp, start verifier & registrar first to generate log file
+      tags: create_log,start_keylime_webapp,start_webapp
+      command: keylime_registrar
+      async: 30000
+      poll: 0
+
+    - name: kill verifier & registrar
+      tags: create_log,start_keylime_webapp,start_webapp
+      shell: killall keylime_verifier keylime_registrar --wait
+      async: 30000
+      poll: 0
+
+    - name: close service firewall
+      tags: close_firewall_webapp,close_firewall,start_webapp
+      service:
+        name: firewalld
+        state: stopped
+
+    - name: start keylime webapp
+      tags: start_service,start_keylime_webapp,start_webapp
+      command: keylime_webapp
+      async: 36000
+      poll: 0

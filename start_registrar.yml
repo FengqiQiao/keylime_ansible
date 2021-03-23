@@ -1,0 +1,92 @@
+--- 
+- hosts: registrar
+  become: yes
+  vars_files:
+    - ./vars/ips.yml
+  tasks:
+
+    - name: install keylime and its dependencies
+      tags: install_keylime_on_registrar,install_keylime
+      dnf:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
+      loop:
+        - keylime
+        - wget
+        - gcc
+        - make
+        - openssl-devel
+        - vim
+        - iputils
+        - lsof
+
+    - name: distable tls
+      tags: configure_tls,start_registrar
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: 'enable_tls = *'
+        line: enable_tls = False
+
+    - name: set registrar's verifier ip
+      tags: start_registrar
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^cloudverifier_ip = .*'
+        replace: cloudverifier_ip = {{ verifier_ip }}
+
+    - name: set registrar's registrar ip
+      tags: start_registrar
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^registrar_ip = .*'
+        replace: registrar_ip = 0.0.0.0
+
+    - name: comment out 1st of  3 lines in registrar_client.py
+      tags: start_registrar
+      lineinfile:
+        path: /usr/lib/python3.9/site-packages/keylime/registrar_client.py
+        firstmatch: yes
+        regexp: '^\s*if not tls_enabled:'
+        line: '    # if not tls_enabled:'
+
+    - name: comment out 2nd of  3 lines in registrar_client.py
+      tags: start_registrar
+      lineinfile:
+        path: /usr/lib/python3.9/site-packages/keylime/registrar_client.py
+        firstmatch: yes
+        regexp: '^\s*raise Exception\('
+        line: '    #     raise Exception('
+
+    - name: comment out 3rd of  3 lines in registrar_client.py
+      tags: start_registrar,try
+      lineinfile:
+        path: /usr/lib/python3.9/site-packages/keylime/registrar_client.py
+        firstmatch: yes
+        regexp: '^\s*\"It is unsafe to use this interface to query AIKs without server-authenticated TLS.\"\)'
+        line: '    #         "It is unsafe to use this interface to query AIKs without server-authenticated TLS.")'
+
+    - name: before starting keylime verifier, start verifier & registrar first to generate log file
+      tags: start_registrar
+      command: keylime_verifier
+      async: 30000
+      poll: 0
+
+    - name: kill verifier
+      tags: start_registrar
+      shell: killall keylime_verifier --wait
+      async: 30000
+      poll: 0
+
+    - name: close service firewall
+      tags: close_firewall_registrar,close_firewall,start_registrar
+      service:
+        name: firewalld
+        state: stopped
+
+    - name: start registrar
+      tags: start_registrar
+      command: keylime_registrar
+      async: 36000
+      poll: 0

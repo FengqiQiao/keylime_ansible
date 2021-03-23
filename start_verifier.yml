@@ -1,0 +1,56 @@
+--- 
+- hosts: verifier
+  become: yes
+  vars_files:
+    - ./vars/ips.yml
+  tasks:
+
+    - name: install keylime and its dependencies
+      tags: install_keylime_on_verifier,install_keylime
+      dnf:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
+      loop:
+        - keylime
+        - wget
+        - gcc
+        - make
+        - openssl-devel
+        - vim
+        - iputils
+        - lsof
+
+    - name: distable tls
+      tags: configure_tls,start_verifier
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: 'enable_tls = *'
+        line: enable_tls = False
+    
+    - name: set registrar's ip
+      tags: configure_verifier_registrar_ip,start_verifier
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^registrar_ip = .*'
+        replace: registrar_ip = {{ registrar_ip }}
+
+    - name: set webapp verifier ip
+      tags: start_verifier
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^cloudverifier_ip = .*'
+        replace: cloudverifier_ip = 0.0.0.0
+
+    - name: close service firewall
+      tags: close_firewall_verifier,close_firewall,start_verifier
+      service:
+        name: firewalld
+        state: stopped
+
+    - name: start verifier
+      tags: start_verifier
+      command: keylime_verifier
+      async: 36000
+      poll: 0
