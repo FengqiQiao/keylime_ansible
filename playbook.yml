@@ -1,9 +1,12 @@
 --- 
-- hosts: all
+- hosts: agents 
   become: yes
+  vars_files:
+    - ./vars/ips.yml
   tasks:
-    - name: install keylime and its dependencies on all VMs
-      tags: install_keylime
+
+    - name: install keylime and its dependencies
+      tags: install_keylime_on_agents,install_keylime
       dnf:
         name: '{{ item }}'
         state: latest
@@ -17,12 +20,6 @@
         - vim
         - iputils
         - lsof
-
-- hosts: agents 
-  become: yes
-  vars_files:
-    - ./vars/ips.yml
-  tasks:
 
     - name: install package
       tags: install_packages
@@ -102,6 +99,22 @@
   vars_files:
     - ./vars/ips.yml
   tasks:
+
+    - name: install keylime and its dependencies 
+      tags: install_keylime_on_webapp,install_keylime
+      dnf:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
+      loop:
+        - keylime
+        - wget
+        - gcc
+        - make
+        - openssl-devel
+        - vim
+        - iputils
+        - lsof
 
     - name: copy static file to /usr/lib/python3.9/site-packages/keylime 
       tags: copy_file,fix_webapp,start_webapp
@@ -183,5 +196,55 @@
     - name: start keylime webapp
       tags: start_service,start_keylime_webapp,start_webapp
       command: keylime_webapp
+      async: 36000
+      poll: 0
+
+
+- hosts: verifier
+  become: yes
+  vars_files:
+    - ./vars/ips.yml
+  tasks:
+
+    - name: install keylime and its dependencies
+      tags: install_keylime_on_verifier,install_keylime
+      dnf:
+        name: '{{ item }}'
+        state: latest
+        update_cache: yes
+      loop:
+        - keylime
+        - wget
+        - gcc
+        - make
+        - openssl-devel
+        - vim
+        - iputils
+        - lsof
+
+    - name: distable tls
+      tags: configure_tls,start_verifier
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: 'enable_tls = *'
+        line: enable_tls = False
+    
+    - name: set registrar's ip
+      tags: configure_verifier_registrar_ip,start_verifier
+      replace:
+        path: /etc/keylime.conf
+        regexp: '^registrar_ip = .*'
+        replace: registrar_ip = {{ registrar_ip }}
+
+    - name: close service firewall
+      tags: close_firewall_verifier,close_firewall,start_verifier
+      service:
+        name: firewalld
+        state: stopped
+
+    - name: start verifier
+      tags: start_verifier
+      command: keylime_verifier
       async: 36000
       poll: 0
