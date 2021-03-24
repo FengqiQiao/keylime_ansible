@@ -6,7 +6,7 @@
   tasks:
 
     - name: install keylime and its dependencies
-      tags: install_keylime_on_agents,install_keylime
+      tags: install_keylime,start_with_installation
       dnf:
         name: '{{ item }}'
         state: latest
@@ -22,7 +22,7 @@
         - lsof
 
     - name: install package
-      tags: install_packages,start_agent
+      tags: install_swtpm,start_with_installation
       dnf:
         name:
           - dbus
@@ -34,7 +34,7 @@
         update_cache: yes
 
     - name: copy swtpm starting script
-      tags: copy_file,start_agent
+      tags: start,start_with_installation
       copy:
         src: ./resources/{{ item }}
         dest: /root/
@@ -46,7 +46,7 @@
         - keylime-agent.sh
 
     - name: configure registrar ip
-      tags: configure_agent,start_agent
+      tags: start,start_with_installation
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -54,7 +54,7 @@
         line: cloudagent_ip = 0.0.0.0
 
     - name: configure registrar ip
-      tags: configure_registrar,start_agent
+      tags: start,start_with_installation
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -62,7 +62,7 @@
         line: registrar_ip = {{ registrar_ip }}
 
     - name: configure agent uuid
-      tags: configure_uuid,start_agent
+      tags: start,start_with_installation
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -70,7 +70,7 @@
         line: agent_uuid = {{ uuid }}
 
     - name: configure tpm ek to false
-      tags: configure_tpm_ek,start_agent
+      tags: disable_ek,start,start_with_installation
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -78,27 +78,38 @@
         line: require_ek_cert = False
 
     - name: start service swtpm
-      tags: start_service,start_swtpm,start_agent
+      tags: start,start_with_installation
       shell: 
         cmd: bash /root/swtpm.sh
       async: 36000
       poll: 0
 
     - name: start service keylime agent
-      tags: start_service,start_keylime_agent,start_agent
+      tags: start,start_with_installation
       shell:
         cmd: bash /root/keylime-agent.sh
       async: 36000
       poll: 0
 
     - name: start service keylime ima emulator
-      tags: start_service,start_keylime_ima,start_agent
+      tags: start,start_with_installation
       command: keylime_ima_emulator
       async: 36000
       poll: 0
 
     - name: stop swtpm, tpm2-abrmd, and keylime_agent
-      tags: agents_stop_all
+      tags: stop
       shell: killall keylime_agent swtpm tpm2-abrmd --wait
       ignore_errors: true
 
+    - name: uninstall agent
+      tags: uninstall
+      dnf:
+        name: keylime
+        state: absent
+
+    - name: remove log folder
+      tags: uninstall
+      file:
+        path: /var/log/keylime/
+        state: absent
