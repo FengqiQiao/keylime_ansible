@@ -2,7 +2,7 @@
 - hosts: webapp 
   become: yes
   vars_files:
-    - ./vars/ips.yml
+    - ../vars/ips.yml
   tasks:
 
     - name: install keylime and its dependencies 
