@@ -21,7 +21,7 @@
         - iputils
         - lsof
 
-    - name: distable tls 
+    - name: disable tls 
       tags: disable_tls,start,start_with_installation
       lineinfile:
         path: /etc/keylime.conf
