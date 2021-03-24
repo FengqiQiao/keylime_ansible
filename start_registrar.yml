@@ -67,7 +67,7 @@
         regexp: '^\s*\"It is unsafe to use this interface to query AIKs without server-authenticated TLS.\"\)'
         line: '    #         "It is unsafe to use this interface to query AIKs without server-authenticated TLS.")'
 
-    - name: before starting keylime verifier, start verifier & registrar first to generate log file
+    - name: before starting keylime verifier, start verifier first to generate log file
       tags: start,start_with_installation
       command: keylime_verifier
       async: 30000
@@ -86,7 +86,7 @@
         state: stopped
 
     - name: start registrar
-      tags: start,start_with_installation
+      tags: start_alone,start,start_with_installation
       command: keylime_registrar
       async: 36000
       poll: 0
