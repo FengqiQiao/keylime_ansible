@@ -1,5 +1,6 @@
 # keylime_ansible
- There are 4 playbooks to seperately manage **agents**, **verifier**, **registrar** and **webapp**.
+ There are 4 playbooks to seperately manage **agents**, **verifier**, **registrar** and **webapp**. \
+ *Recommended service start order: registrar -> agent -> verifier -> webapp*
 ## 1. For Node Running Keylime_agent Service:
   - Installing keylime/wstpm, start all related service(swtpm, keylime_agent, keylime_ima_emulator) on agent node:
   ```
