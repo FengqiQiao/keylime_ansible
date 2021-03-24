@@ -67,7 +67,7 @@
         path: /etc/keylime.conf
         firstmatch: yes
         regexp: '^agent_uuid = *'
-        line: agent_uuid = {{ uuid }}
+        line: agent_uuid = hostname
 
     - name: configure tpm ek to false
       tags: configure_tpm_ek,start_agent

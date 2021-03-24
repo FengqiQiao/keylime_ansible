@@ -62,12 +62,12 @@
         line: registrar_ip = {{ registrar_ip }}
 
     - name: configure agent uuid
-      tags: start,start_with_installation
+      tags: configure_uuid,start,start_with_installation
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
         regexp: '^agent_uuid = *'
-        line: agent_uuid = {{ uuid }}
+        line: agent_uuid = {{ inventory_hostname }}
 
     - name: configure tpm ek to false
       tags: disable_ek,start,start_with_installation
