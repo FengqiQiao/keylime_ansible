@@ -62,8 +62,12 @@
 
     - name: uninstall verifier
       tags: uninstall
-      command: dnf remove keylime
+      dnf:
+        name: keylime
+        state: absent
   
     - name: remove log folder
       tags: uninstall
-      command: remove -rf /var/log/keylime
+      file:
+        path: /var/log/keylime/
+        state: absent
