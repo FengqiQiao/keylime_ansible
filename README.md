@@ -1,68 +1,70 @@
-### keylime_ansible
-There are 4 playbooks to seperately manage **agents**, **verifier**, **registrar** and **webapp**.
-* For Node Running Keylime_agent Service:
-  Installing keylime/wstpm, start all related service(swtpm, keylime_agent, keylime_ima_emulator) on agent node:
+# keylime_ansible
+## There are 4 playbooks to seperately manage **agents**, **verifier**, **registrar** and **webapp**.
+### For Node Running Keylime_agent Service:
+  - Installing keylime/wstpm, start all related service(swtpm, keylime_agent, keylime_ima_emulator) on agent node:
   ```
   ansible-playbook --tags start_with_installation start_agent
   ```
-  Setting up agents configuration, start all related service(swtpm, keylime_agent, keylime_ima_emulator) on agent node:
+  - **Setting up agents configuration, start all related service(swtpm, keylime_agent, keylime_ima_emulator) on agent node:**
   ```
   ansible-playbook --tags start start_agent
   ```
-  Stop all related service on agents node:
+  - Stop all related service on agents node:
   ```
   ansible-playbook --tags stop start_agent
   ```
-  Uninstall keylime service on agents node:
+  - Uninstall keylime service on agents node:
   ```
   ansible-playbook --tags uninstall start_agent
   ```
-* For Node Running keylime_verifier Service:
-  Installing keylime, start keylime_verifier service:
+### For Node Running keylime_verifier Service:
+  - Installing keylime, start keylime_verifier service:
   ```
   ansible-playbook --tags start_with_installation start_verifier
   ```
-  Setting up verifier configuration, start keylime_verifier service:
+  - **Setting up verifier configuration, start keylime_verifier service:**
   ```
   ansible-playbook --tags start start_verifier
   ```
-  Stop keylime_verifier service:
+  - Stop keylime_verifier service:
   ```
   ansible-playbook --tags stop start_verifier
   ```
-  Uninstall keylime service on verifier node:
+  - Uninstall keylime service on verifier node:
   ```
   ansible-playbook --tags uninstall start_verifier
   ```
-* For Node Running keylime_registrar Service:
+### For Node Running keylime_registrar Service:
+  - Installing keylime, start keylime_registrar service:
   ```
   ansible-playbook --tags start_with_installation start_registrar
   ```
-  Setting up registrar configuration, start keylime_registrar service:
+  - **Setting up registrar configuration, start keylime_registrar service:**
   ```
   ansible-playbook --tags start start_registrar
   ```
-  Stop keylime_registrar service:
+  - Stop keylime_registrar service:
   ```
   ansible-playbook --tags stop start_registrar
   ```
-  Uninstall keylime service on registrar node:
+  - Uninstall keylime service on registrar node:
   ```
   ansible-playbook --tags uninstall start_registrar
   ```
-* For Node Running keylime_webapp Service:
+### For Node Running keylime_webapp Service:
+  - Installing keylime, start keylime_webapp service:
   ```
   ansible-playbook --tags start_with_installation start_webapp
   ```
-  Setting up webapp configuration, start keylime_registrar service:
+  - **Setting up webapp configuration, start keylime_registrar service:**
   ```
   ansible-playbook --tags start start_webapp
   ```
-  Stop keylime_webapp service:
+  - Stop keylime_webapp service:
   ```
   ansible-playbook --tags stop start_webapp
   ```
-  Uninstall keylime service on webapp node:
+  - Uninstall keylime service on webapp node:
   ```
   ansible-playbook --tags uninstall start_webapp
   ```
