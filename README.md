@@ -1,6 +1,6 @@
 # keylime_ansible
 ## There are 4 playbooks to seperately manage **agents**, **verifier**, **registrar** and **webapp**.
-### For Node Running Keylime_agent Service:
+### 1. For Node Running Keylime_agent Service:
   - Installing keylime/wstpm, start all related service(swtpm, keylime_agent, keylime_ima_emulator) on agent node:
   ```
   ansible-playbook --tags start_with_installation start_agent
@@ -17,7 +17,7 @@
   ```
   ansible-playbook --tags uninstall start_agent
   ```
-### For Node Running keylime_verifier Service:
+### 2. For Node Running keylime_verifier Service:
   - Installing keylime, start keylime_verifier service:
   ```
   ansible-playbook --tags start_with_installation start_verifier
@@ -34,7 +34,7 @@
   ```
   ansible-playbook --tags uninstall start_verifier
   ```
-### For Node Running keylime_registrar Service:
+### 3. For Node Running keylime_registrar Service:
   - Installing keylime, start keylime_registrar service:
   ```
   ansible-playbook --tags start_with_installation start_registrar
@@ -51,7 +51,7 @@
   ```
   ansible-playbook --tags uninstall start_registrar
   ```
-### For Node Running keylime_webapp Service:
+### 4. For Node Running keylime_webapp Service:
   - Installing keylime, start keylime_webapp service:
   ```
   ansible-playbook --tags start_with_installation start_webapp
