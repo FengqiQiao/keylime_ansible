@@ -120,3 +120,12 @@
       file:
         path: /var/log/keylime/
         state: absent
+
+    - name: remove static resource
+      tags: uninstall
+      file:
+        path: /usr/lib/python3.9/site-packages/keylime/{{ item }}
+        state: absent
+      with_items:
+        - static
+        - static.tar.gz

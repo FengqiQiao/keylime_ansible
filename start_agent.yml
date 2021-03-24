@@ -113,3 +113,12 @@
       file:
         path: /var/log/keylime/
         state: absent
+
+    - name: remove swtpm.sh, keylime-agent.sh
+      tags: uninstall
+      file:
+        path: /root/{{ item }}      
+        state: absent
+      with_items:
+        - swtpm.sh
+        - keylime-agent.sh
