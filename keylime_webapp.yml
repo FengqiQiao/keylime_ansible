@@ -52,6 +52,24 @@
         regexp: 'my_tls_priv_key = *'
         line: '    my_tls_priv_key = "%s" % (my_priv_key)'
 
+    - name: before start keylime webapp, start verifier & registrar first to generate log file
+      tags: start,start_with_installation
+      command: keylime_verifier
+      async: 30000
+      poll: 0
+
+    - name: before start keylime webapp, start verifier & registrar first to generate log file
+      tags: start,start_with_installation
+      command: keylime_registrar
+      async: 30000
+      poll: 0
+
+    - name: kill verifier & registrar
+      tags: start,start_with_installation
+      shell: killall keylime_verifier keylime_registrar --wait
+      async: 30000
+      poll: 0
+
     - name: disable tls
       tags: disable_tls,start,start_with_installation
       lineinfile:
@@ -73,24 +91,6 @@
         path: /etc/keylime.conf
         regexp: '^registrar_ip = .*'
         replace: registrar_ip = {{ registrar_ip }}
-
-    - name: before start keylime webapp, start verifier & registrar first to generate log file
-      tags: start,start_with_installation
-      command: keylime_verifier
-      async: 30000
-      poll: 0
-
-    - name: before start keylime webapp, start verifier & registrar first to generate log file
-      tags: start,start_with_installation
-      command: keylime_registrar
-      async: 30000
-      poll: 0
-
-    - name: kill verifier & registrar
-      tags: start,start_with_installation
-      shell: killall keylime_verifier keylime_registrar --wait
-      async: 30000
-      poll: 0
 
     - name: close service firewall
       tags: close_firewall,start,start_with_installation
