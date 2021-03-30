@@ -1,2 +1,2 @@
-registrar_ip: 172.25.2.13
-verifier_ip: 172.25.2.12
+registrar_ip: REGISTRAR_IP_ADDR
+verifier_ip: VERIFIER_IP_ADDR
