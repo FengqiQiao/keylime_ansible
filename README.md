@@ -89,16 +89,28 @@ ansible-playbook --tags uninstall keylime_registrar.yml
 
 ## 4. For Node Running keylime_webapp Service:
 
-- Installing keylime, start keylime_webapp service:
+- Install & configurate keylime_webapp
 
 ```
-ansible-playbook --tags start_with_installation keylime_webapp.yml
+ansible-playbook --tags install_and_config_webapp keylime_webapp.yml
 ```
 
-- **Setting up webapp configuration, start keylime_registrar service:**
+- Install keylime
 
 ```
-ansible-playbook --tags start keylime_webapp.yml
+ansible-playbook --tags install_keylime keylime_webapp.yml
+```
+
+- Configurate keylime_webapp
+
+```
+ansible-playbook --tags config_webapp keylime_webapp.yml
+```
+
+- Start webapp
+
+```
+ansible-playbook --tags start_webapp keylime_webapp.yml
 ```
 
 - Stop keylime_webapp service:

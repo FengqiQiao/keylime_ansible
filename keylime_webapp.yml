@@ -1,14 +1,13 @@
---- 
-- hosts: webapp 
+---
+- hosts: webapp
   become: yes
   vars_files:
     - ./vars/ips.yml
   tasks:
-
-    - name: install keylime and its dependencies 
-      tags: install_keylime,start_with_installation
+    - name: install keylime and its dependencies
+      tags: install_keylime,install_and_config_webapp,config_webapp
       dnf:
-        name: '{{ item }}'
+        name: "{{ item }}"
         state: latest
         update_cache: yes
       loop:
@@ -21,8 +20,8 @@
         - iputils
         - lsof
 
-    - name: copy static file to /usr/lib/python3.9/site-packages/keylime 
-      tags: start,start_with_installation
+    - name: copy static file to /usr/lib/python3.9/site-packages/keylime
+      tags: install_and_config_webapp,config_webapp
       copy:
         src: ./resources/{{ item }}
         dest: /usr/lib/python3.9/site-packages/keylime/
@@ -33,75 +32,61 @@
         - static.tar.gz
 
     - name: unzip static.tar.gz
-      tags: start,start_with_installation
-      command: tar -xzvf /usr/lib/python3.9/site-packages/keylime/static.tar.gz -C /usr/lib/python3.9/site-packages/keylime/
+      tags: install_and_config_webapp,config_webapp
+      shell: tar -xzvf /usr/lib/python3.9/site-packages/keylime/static.tar.gz -C /usr/lib/python3.9/site-packages/keylime/
 
     - name: fix tenant_webapp.py
-      tags: start,start_with_installation
+      tags: install_and_config_webapp,config_webapp
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
         firstmatch: yes
-        regexp: 'my_tls_cert = *'
+        regexp: "my_tls_cert = *"
         line: '    my_tls_cert = "%s" % (my_cert)'
 
     - name: fix tenant_webapp.py
-      tags: start,start_with_installation
+      tags: install_and_config_webapp,config_webapp
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
         firstmatch: yes
-        regexp: 'my_tls_priv_key = *'
+        regexp: "my_tls_priv_key = *"
         line: '    my_tls_priv_key = "%s" % (my_priv_key)'
 
-    - name: before start keylime webapp, start verifier & registrar first to generate log file
-      tags: start,start_with_installation
-      command: keylime_verifier
-      async: 30000
+    - name: before start keylime webapp, start verifier first to generate log file
+      tags: install_and_config_webapp,config_webapp
+      shell: keylime_verifier
+      async: 300
       poll: 0
 
-    - name: before start keylime webapp, start verifier & registrar first to generate log file
-      tags: start,start_with_installation
-      command: keylime_registrar
-      async: 30000
-      poll: 0
-
-    - name: kill verifier & registrar
-      tags: start,start_with_installation
-      shell: killall keylime_verifier keylime_registrar --wait
-      async: 30000
-      poll: 0
+    - name: kill verifier
+      tags: install_and_config_webapp,config_webapp
+      shell: killall keylime_verifier --wait
 
     - name: disable tls
-      tags: disable_tls,start,start_with_installation
+      tags: disable_tls,install_and_config_webapp,config_webapp
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
-        regexp: 'enable_tls = *'
+        regexp: "enable_tls = *"
         line: enable_tls = False
 
     - name: set verifier ip
-      tags: start,start_with_installation
+      tags: install_and_config_webapp,config_webapp
       replace:
         path: /etc/keylime.conf
-        regexp: '^cloudverifier_ip = .*'
+        regexp: "^cloudverifier_ip = .*"
         replace: cloudverifier_ip = {{ verifier_ip }}
 
     - name: set registrar ip
-      tags: start,start_with_installation
+      tags: install_and_config_webapp,config_webapp
       replace:
         path: /etc/keylime.conf
-        regexp: '^registrar_ip = .*'
+        regexp: "^registrar_ip = .*"
         replace: registrar_ip = {{ registrar_ip }}
 
-    - name: close service firewall
-      tags: close_firewall,start,start_with_installation
-      service:
-        name: firewalld
-        state: stopped
-
     - name: start keylime webapp
-      tags: start_alone,start,start_with_installation
-      command: keylime_webapp
-      async: 36000
+      tags: start_webapp
+      shell: /usr/bin/keylime_webapp
+      async: 2592000
       poll: 0
 
     - name: stop webapp
@@ -114,7 +99,7 @@
       dnf:
         name: keylime
         state: absent
-  
+
     - name: remove log folder
       tags: uninstall
       file:
