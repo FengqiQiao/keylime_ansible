@@ -7,7 +7,7 @@
     - name: install keylime and its dependencies
       tags: install_keylime
       dnf:
-        name: "{{ item }}"
+        name: '{{ item }}'
         state: latest
         update_cache: yes
       loop:
@@ -50,7 +50,7 @@
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
         firstmatch: yes
-        regexp: "my_tls_cert = *"
+        regexp: 'my_tls_cert = *'
         line: '    my_tls_cert = "%s" % (my_cert)'
 
     - name: fix tenant_webapp.py
@@ -58,7 +58,7 @@
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
         firstmatch: yes
-        regexp: "my_tls_priv_key = *"
+        regexp: 'my_tls_priv_key = *'
         line: '    my_tls_priv_key = "%s" % (my_priv_key)'
 
     - name: disable tls
@@ -66,21 +66,21 @@
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
-        regexp: "enable_tls = *"
+        regexp: 'enable_tls = *'
         line: enable_tls = False
 
     - name: set verifier ip
       tags: config_webapp
       replace:
         path: /etc/keylime.conf
-        regexp: "^cloudverifier_ip = .*"
+        regexp: '^cloudverifier_ip = .*'
         replace: cloudverifier_ip = {{ verifier_ip }}
 
     - name: set registrar ip
       tags: config_webapp
       replace:
         path: /etc/keylime.conf
-        regexp: "^registrar_ip = .*"
+        regexp: '^registrar_ip = .*'
         replace: registrar_ip = {{ registrar_ip }}
 
     - name: start keylime webapp
