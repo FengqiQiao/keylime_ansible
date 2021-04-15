@@ -89,16 +89,24 @@ ansible-playbook --tags uninstall keylime_registrar.yml
 
 ## 4. For Node Running keylime_webapp Service:
 
-- Install & configurate keylime_webapp
-
-```
-ansible-playbook --tags install_and_config_webapp keylime_webapp.yml
-```
+The recommended order of running keylime_webapp: install keylime -> run verifier -> kill verifier -> configurate keylime_webapp -> run keylime_webapp -> stop keylime_webapp
 
 - Install keylime
 
 ```
 ansible-playbook --tags install_keylime keylime_webapp.yml
+```
+
+- Run keylime_verifier
+
+```
+ansible-playbook --tags run_verifier keylime_webapp.yml
+```
+
+- Kill keylime_verifier
+
+```
+ansible-playbook --tags kill_verifier keylime_webapp.yml
 ```
 
 - Configurate keylime_webapp

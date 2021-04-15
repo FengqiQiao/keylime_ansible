@@ -5,7 +5,7 @@
     - ./vars/ips.yml
   tasks:
     - name: install keylime and its dependencies
-      tags: install_keylime,install_and_config_webapp,config_webapp
+      tags: install_keylime
       dnf:
         name: "{{ item }}"
         state: latest
@@ -20,8 +20,18 @@
         - iputils
         - lsof
 
+    - name: before start keylime webapp, start verifier first to generate certificates in /var/lib/keylime/cv_ca
+      tags: run_verifier
+      shell: keylime_verifier
+      async: 300
+      poll: 0
+
+    - name: kill verifier
+      tags: kill_verifier
+      shell: killall keylime_verifier --wait
+
     - name: copy static file to /usr/lib/python3.9/site-packages/keylime
-      tags: install_and_config_webapp,config_webapp
+      tags: config_webapp
       copy:
         src: ./resources/{{ item }}
         dest: /usr/lib/python3.9/site-packages/keylime/
@@ -32,11 +42,11 @@
         - static.tar.gz
 
     - name: unzip static.tar.gz
-      tags: install_and_config_webapp,config_webapp
+      tags: config_webapp
       shell: tar -xzvf /usr/lib/python3.9/site-packages/keylime/static.tar.gz -C /usr/lib/python3.9/site-packages/keylime/
 
     - name: fix tenant_webapp.py
-      tags: install_and_config_webapp,config_webapp
+      tags: config_webapp
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
         firstmatch: yes
@@ -44,25 +54,15 @@
         line: '    my_tls_cert = "%s" % (my_cert)'
 
     - name: fix tenant_webapp.py
-      tags: install_and_config_webapp,config_webapp
+      tags: config_webapp
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
         firstmatch: yes
         regexp: "my_tls_priv_key = *"
         line: '    my_tls_priv_key = "%s" % (my_priv_key)'
 
-    - name: before start keylime webapp, start verifier first to generate log file
-      tags: install_and_config_webapp,config_webapp
-      shell: keylime_verifier
-      async: 300
-      poll: 0
-
-    - name: kill verifier
-      tags: install_and_config_webapp,config_webapp
-      shell: killall keylime_verifier --wait
-
     - name: disable tls
-      tags: disable_tls,install_and_config_webapp,config_webapp
+      tags: disable_tls,config_webapp
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -70,14 +70,14 @@
         line: enable_tls = False
 
     - name: set verifier ip
-      tags: install_and_config_webapp,config_webapp
+      tags: config_webapp
       replace:
         path: /etc/keylime.conf
         regexp: "^cloudverifier_ip = .*"
         replace: cloudverifier_ip = {{ verifier_ip }}
 
     - name: set registrar ip
-      tags: install_and_config_webapp,config_webapp
+      tags: config_webapp
       replace:
         path: /etc/keylime.conf
         regexp: "^registrar_ip = .*"
