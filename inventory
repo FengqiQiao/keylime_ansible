@@ -17,16 +17,10 @@
 ansible_python_interpreter=auto
 
 [webapp:vars]
-ansible_ssh_user=root
-ansible_ssh_pass=northeastern
-ansible_become_pass=northeastern
+ansible_python_interpreter=auto
 
 [verifier:vars]
-ansible_ssh_user=root
-ansible_ssh_pass=northeastern
-ansible_become_pass=northeastern
+ansible_python_interpreter=auto
 
 [registrar:vars]
-ansible_ssh_user=root
-ansible_ssh_pass=northeastern
-ansible_become_pass=northeastern
+ansible_python_interpreter=auto
