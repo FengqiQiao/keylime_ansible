@@ -6,7 +6,7 @@
   tasks:
 
     - name: install keylime and its dependencies
-      tags: install_keylime,start_with_installation
+      tags: install
       dnf:
         name: '{{ item }}'
         state: latest
@@ -22,7 +22,7 @@
         - lsof
 
     - name: disable tls
-      tags: disable_tls,start,start_with_installation
+      tags: config
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -30,21 +30,21 @@
         line: enable_tls = False
 
     - name: set registrar's verifier ip
-      tags: start,start_with_installation
+      tags: config
       replace:
         path: /etc/keylime.conf
         regexp: '^cloudverifier_ip = .*'
         replace: cloudverifier_ip = {{ verifier_ip }}
 
     - name: set registrar's registrar ip
-      tags: start,start_with_installation
+      tags: config
       replace:
         path: /etc/keylime.conf
         regexp: '^registrar_ip = .*'
         replace: registrar_ip = 0.0.0.0
 
     - name: comment out 1st of  3 lines in registrar_client.py
-      tags: start,start_with_installation
+      tags: config
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/registrar_client.py
         firstmatch: yes
@@ -52,7 +52,7 @@
         line: '    # if not tls_enabled:'
 
     - name: comment out 2nd of  3 lines in registrar_client.py
-      tags: start,start_with_installation
+      tags: config
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/registrar_client.py
         firstmatch: yes
@@ -60,7 +60,7 @@
         line: '    #     raise Exception('
 
     - name: comment out 3rd of  3 lines in registrar_client.py
-      tags: start,start_with_installation
+      tags: config
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/registrar_client.py
         firstmatch: yes
@@ -68,25 +68,25 @@
         line: '    #         "It is unsafe to use this interface to query AIKs without server-authenticated TLS.")'
 
     - name: before starting keylime verifier, start verifier first to generate log file
-      tags: start,start_with_installation
+      tags: run_verifier
       command: keylime_verifier
       async: 30000
       poll: 0
 
     - name: kill verifier
-      tags: start,start_with_installation
+      tags: kill_verifier
       shell: killall keylime_verifier --wait
       async: 30000
       poll: 0
 
     - name: close service firewall
-      tags: close_firewall,start,start_with_installation
+      tags: start
       service:
         name: firewalld
         state: stopped
 
     - name: start registrar
-      tags: start_alone,start,start_with_installation
+      tags: start
       command: keylime_registrar
       async: 36000
       poll: 0
