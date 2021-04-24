@@ -6,7 +6,7 @@
   tasks:
 
     - name: install keylime and its dependencies
-      tags: install_keylime,start_with_installation
+      tags: install
       dnf:
         name: '{{ item }}'
         state: latest
@@ -22,7 +22,7 @@
         - lsof
 
     - name: disable tls 
-      tags: disable_tls,start,start_with_installation
+      tags: config
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -30,27 +30,27 @@
         line: enable_tls = False
     
     - name: set registrar's ip
-      tags: configure_registrar_ip,start,start_with_installation
+      tags: config
       replace:
         path: /etc/keylime.conf
         regexp: '^registrar_ip = .*'
         replace: registrar_ip = {{ registrar_ip }}
 
     - name: set verifier ip to 0.0.0.0
-      tags: configure_verifier_ip,start,start_with_installation
+      tags: config
       replace:
         path: /etc/keylime.conf
         regexp: '^cloudverifier_ip = .*'
         replace: cloudverifier_ip = 0.0.0.0
 
     - name: close service firewall
-      tags: close_firewall,start,start_with_installation
+      tags: start
       service:
         name: firewalld
         state: stopped
 
     - name: start verifier
-      tags: start_alone,start,start_with_installation
+      tags: start
       command: keylime_verifier
       async: 36000
       poll: 0

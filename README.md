@@ -43,7 +43,13 @@ ansible-playbook --tags uninstall keylime_agent.yml
 ansible-playbook --tags install keylime_verifier.yml
 ```
 
-- Setting up verifier configuration, start keylime_verifier service:
+- Setting up registrar configuration: 
+
+```
+ansible-playbook --tags config keylime_registrar.yml
+```
+
+- Start keylime_verifier service:
 
 ```
 ansible-playbook --tags start keylime_verifier.yml
