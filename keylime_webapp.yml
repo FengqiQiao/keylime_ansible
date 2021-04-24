@@ -91,6 +91,12 @@
         regexp: '^require_ek_cert = *'
         line: require_ek_cert = False
     
+    - name: close service firewall
+      tags: start
+      service:
+        name: firewalld
+        state: stopped
+   
     - name: start keylime webapp
       tags: start
       shell: /usr/bin/keylime_webapp
