@@ -129,7 +129,7 @@ ansible-playbook --tags kill_verifier keylime_webapp.yml
 - Configurate keylime_webapp
 
 ```
-ansible-playbook --tags config_webapp keylime_webapp.yml
+ansible-playbook --tags config keylime_webapp.yml
 ```
 
 - Start webapp
