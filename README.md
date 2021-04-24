@@ -43,7 +43,13 @@ ansible-playbook --tags uninstall keylime_agent.yml
 ansible-playbook --tags install keylime_verifier.yml
 ```
 
-- Setting up verifier configuration, start keylime_verifier service:
+- Setting up registrar configuration: 
+
+```
+ansible-playbook --tags config keylime_registrar.yml
+```
+
+- Start keylime_verifier service:
 
 ```
 ansible-playbook --tags start keylime_verifier.yml
@@ -69,8 +75,25 @@ ansible-playbook --tags uninstall keylime_verifier.yml
 ansible-playbook --tags install keylime_registrar.yml
 ```
 
-- Setting up registrar configuration, start keylime_registrar service:
+- Setting up registrar configuration: 
 
+```
+ansible-playbook --tags config keylime_registrar.yml
+```
+
+- Run keylime_verifier to generate certificates in /var/lib/keylime/cv_ca
+
+```
+ansible-playbook --tags run_verifier keylime_registrar.yml
+```
+
+- Kill keylime_verifier
+
+```
+ansible-playbook --tags kill_verifier keylime_registrar.yml
+```
+
+- start keylime_registrar service:
 ```
 ansible-playbook --tags start keylime_registrar.yml
 ```
@@ -112,7 +135,7 @@ ansible-playbook --tags kill_verifier keylime_webapp.yml
 - Configurate keylime_webapp
 
 ```
-ansible-playbook --tags config_webapp keylime_webapp.yml
+ansible-playbook --tags config keylime_webapp.yml
 ```
 
 - Start webapp

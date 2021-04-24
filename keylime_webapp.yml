@@ -5,7 +5,7 @@
     - ./vars/ips.yml
   tasks:
     - name: install keylime and its dependencies
-      tags: install_keylime
+      tags: install
       dnf:
         name: '{{ item }}'
         state: latest
@@ -31,7 +31,7 @@
       shell: killall keylime_verifier --wait
 
     - name: copy static file to /usr/lib/python3.9/site-packages/keylime
-      tags: config_webapp
+      tags: config
       copy:
         src: ./resources/{{ item }}
         dest: /usr/lib/python3.9/site-packages/keylime/
@@ -42,11 +42,11 @@
         - static.tar.gz
 
     - name: unzip static.tar.gz
-      tags: config_webapp
+      tags: config
       shell: tar -xzvf /usr/lib/python3.9/site-packages/keylime/static.tar.gz -C /usr/lib/python3.9/site-packages/keylime/
 
     - name: fix tenant_webapp.py
-      tags: config_webapp
+      tags: config
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
         firstmatch: yes
@@ -54,7 +54,7 @@
         line: '    my_tls_cert = "%s" % (my_cert)'
 
     - name: fix tenant_webapp.py
-      tags: config_webapp
+      tags: config
       lineinfile:
         path: /usr/lib/python3.9/site-packages/keylime/tenant_webapp.py
         firstmatch: yes
@@ -62,7 +62,7 @@
         line: '    my_tls_priv_key = "%s" % (my_priv_key)'
 
     - name: disable tls
-      tags: disable_tls,config_webapp
+      tags: config
       lineinfile:
         path: /etc/keylime.conf
         firstmatch: yes
@@ -70,21 +70,35 @@
         line: enable_tls = False
 
     - name: set verifier ip
-      tags: config_webapp
+      tags: config
       replace:
         path: /etc/keylime.conf
         regexp: '^cloudverifier_ip = .*'
         replace: cloudverifier_ip = {{ verifier_ip }}
 
     - name: set registrar ip
-      tags: config_webapp
+      tags: config
       replace:
         path: /etc/keylime.conf
         regexp: '^registrar_ip = .*'
         replace: registrar_ip = {{ registrar_ip }}
 
+    - name: configure tpm ek to false
+      tags: config
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: '^require_ek_cert = *'
+        line: require_ek_cert = False
+    
+    - name: close service firewall
+      tags: start
+      service:
+        name: firewalld
+        state: stopped
+   
     - name: start keylime webapp
-      tags: start_webapp
+      tags: start
       shell: /usr/bin/keylime_webapp
       async: 2592000
       poll: 0
