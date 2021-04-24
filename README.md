@@ -29,21 +29,21 @@ ansible-playbook --tags start_agent keylime_agent.yml
 ansible-playbook --tags stop_all keylime_agent.yml
 ```
 
-- Uninstall keylime:
+- Uninstall keylime service on agent node:
 
 ```
 ansible-playbook --tags uninstall keylime_agent.yml
 ```
 
-## 2. For Node Running keylime_verifier Service:
+## 2. To run keylime_verifier Service:
 
-- Installing keylime, start keylime_verifier service:
+- Install keylime:
 
 ```
-ansible-playbook --tags start_with_installation keylime_verifier.yml
+ansible-playbook --tags install keylime_verifier.yml
 ```
 
-- **Setting up verifier configuration, start keylime_verifier service:**
+- Setting up verifier configuration, start keylime_verifier service:
 
 ```
 ansible-playbook --tags start keylime_verifier.yml
@@ -61,15 +61,15 @@ ansible-playbook --tags stop keylime_verifier.yml
 ansible-playbook --tags uninstall keylime_verifier.yml
 ```
 
-## 3. For Node Running keylime_registrar Service:
+## 3. To run keylime_registrar Service:
 
-- Installing keylime, start keylime_registrar service:
+- Install keylime:
 
 ```
-ansible-playbook --tags start_with_installation keylime_registrar.yml
+ansible-playbook --tags install keylime_registrar.yml
 ```
 
-- **Setting up registrar configuration, start keylime_registrar service:**
+- Setting up registrar configuration, start keylime_registrar service:
 
 ```
 ansible-playbook --tags start keylime_registrar.yml
@@ -87,17 +87,17 @@ ansible-playbook --tags stop keylime_registrar.yml
 ansible-playbook --tags uninstall keylime_registrar.yml
 ```
 
-## 4. For Node Running keylime_webapp Service:
+## 4. To run keylime_webapp Service:
 
 The recommended order of running keylime_webapp: install keylime -> run verifier -> kill verifier -> configurate keylime_webapp -> run keylime_webapp -> stop keylime_webapp
 
 - Install keylime
 
 ```
-ansible-playbook --tags install_keylime keylime_webapp.yml
+ansible-playbook --tags install keylime_webapp.yml
 ```
 
-- Run keylime_verifier
+- Run keylime_verifier to generate certificates in /var/lib/keylime/cv_ca
 
 ```
 ansible-playbook --tags run_verifier keylime_webapp.yml
@@ -118,7 +118,7 @@ ansible-playbook --tags config_webapp keylime_webapp.yml
 - Start webapp
 
 ```
-ansible-playbook --tags start_webapp keylime_webapp.yml
+ansible-playbook --tags start keylime_webapp.yml
 ```
 
 - Stop keylime_webapp service:
