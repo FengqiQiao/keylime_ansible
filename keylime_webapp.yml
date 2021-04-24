@@ -5,7 +5,7 @@
     - ./vars/ips.yml
   tasks:
     - name: install keylime and its dependencies
-      tags: install_keylime
+      tags: install
       dnf:
         name: '{{ item }}'
         state: latest
@@ -83,6 +83,14 @@
         regexp: '^registrar_ip = .*'
         replace: registrar_ip = {{ registrar_ip }}
 
+    - name: configure tpm ek to false
+      tags: config_webapp
+      lineinfile:
+        path: /etc/keylime.conf
+        firstmatch: yes
+        regexp: '^require_ek_cert = *'
+        line: require_ek_cert = False
+    
     - name: start keylime webapp
       tags: start_webapp
       shell: /usr/bin/keylime_webapp
