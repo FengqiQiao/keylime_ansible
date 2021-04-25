@@ -3,6 +3,8 @@
 There are 4 playbooks to seperately manage **agents**, **verifier**, **registrar** and **webapp**. \
  _Recommended service start order: registrar -> agent -> verifier -> webapp_
 
+![alt text](./imgs/ansible_structure.png 'Ansible Playbooks Structure for Managing Keylime')
+
 ## 1. To Run keylime_agent Service:
 
 - Install keylime, swtpm, and swtpm's dependencies:
